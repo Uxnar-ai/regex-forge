@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>regexlab · 正则引擎解剖台</title>
+<meta name="description" content="把一条正则拆成语法树、编译成 ε-NFA 画出来，再用三种引擎跑同一个输入串，对比步数与耗时。">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div>
+    <h1>正则引擎解剖台 <span class="dim">regexlab</span></h1>
+    <p>自己写的解析器与匹配引擎：递归下降 → AST → Thompson ε-NFA → 子集构造 DFA，外加一个朴素回溯器。
+       同一 pattern、同一输入串，三种实现跑给你看步数和耗时差在哪。</p>
+  </div>
+  <div class="spacer"></div>
+  <button id="themeBtn" title="切换日夜主题">主题</button>
+</header>
+
+<section class="controls">
+  <div class="row">
+    <div class="pattern-box">
+      <span>/</span>
+      <input id="pattern" spellcheck="false" autocomplete="off" value="(a|b)*abb" aria-label="正则表达式">
+      <span>/</span>
+    </div>
+    <div class="chip-select">
+      <button data-sample="(a|b)*abb" title="经典教材例">教材例</button>
+      <button data-sample="^[a-z0-9_]{3,8}$" title="标识符">标识符</button>
+      <button data-sample="(a|a)*b" title="指数回溯">回溯炸弹</button>
+      <button data-sample="\d{4}-\d{2}-\d{2}" title="日期">日期</button>
+    </div>
+  </div>
+  <div class="row">
+    <textarea id="input" spellcheck="false" aria-label="测试字符串">aababbababb</textarea>
+  </div>
+  <div class="row">
+    <label class="lbl">匹配语义</label>
+    <div class="chip-select" id="modeGroup">
+      <button data-mode="search" class="primary">包含匹配</button>
+      <button data-mode="full">整串匹配</button>
+    </div>
+    <div class="spacer"></div>
+    <label class="lbl">生成压力串</label>
+    <div class="chip-select">
+      <button data-gen="a:20">a×20</button>
+      <button data-gen="a:22">a×22</button>
+      <button data-gen="ab:400">ab×400</button>
+    </div>
+  </div>
+</section>
+
+<div class="grid">
+
+  <section class="card">
+    <h2>语法树 <span class="tag" id="astTag">—</span></h2>
+    <div id="ast"></div>
+    <p class="note" id="astNote"></p>
+  </section>
+
+  <section class="card">
+    <h2>ε-NFA 状态图 <span class="tag" id="nfaTag">—</span></h2>
+    <div id="nfaWrap"><svg id="nfa" viewBox="0 0 520 200" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <p class="note">虚线 = ε 转移；绿色 = 当前活跃状态集合。图随输入串逐步走动。</p>
+  </section>
+
+  <section class="card">
+    <h2>并行 NFA 模拟 <span class="tag" id="stepTag">—</span></h2>
+    <div class="stepper">
+      <div class="tape" id="tape"></div>
+      <input type="range" id="scrub" min="0" max="0" value="0" aria-label="步进">
+      <div class="row">
+        <button id="playBtn">播放</button>
+        <button id="prevBtn">上一步</button>
+        <button id="nextBtn">下一步</button>
+        <div class="spacer"></div>
+        <div class="status-line" id="verdict"></div>
+      </div>
+      <div class="states" id="states"></div>
+      <p class="note" id="stepNote"></p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>三种引擎对比 <span class="tag">同 pattern · 同输入</span></h2>
+    <div class="bars" id="bars"></div>
+    <p class="note" id="benchNote"></p>
+  </section>
+
+</div>
+
+<div class="grid full">
+  <section class="card">
+    <h2>子集构造 DFA <span class="tag" id="dfaTag">—</span></h2>
+    <div class="scroll" id="dfaWrap"></div>
+  </section>
+</div>
+
+<footer>
+  引擎全部手写：tokenizer/parser、Thompson 补丁表、ε-闭包、子集构造、带回溯上限的递归匹配器。
+  没有调用浏览器 <code>RegExp</code> 做匹配（只用来交叉验证一条）。<br>
+  支持的语法：字面量 · <code>.</code> · <code>*</code> <code>+</code> <code>?</code> · <code>|</code> · <code>()</code> ·
+  字符类 <code>[a-z0-9_]</code> / <code>[^…]</code> · 锚点 <code>^</code> <code>$</code> · 转义 <code>\.</code> · 计数 <code>{n}</code> <code>{n,m}</code>
+</footer>
+
+</div>
+<script src="/static/engine.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
